@@ -7,6 +7,7 @@ resource "google_project_organization_policy" "allowed_policy_member_domains" {
   constraint = "iam.allowedPolicyMemberDomains"
 
   list_policy {
+    inherit_from_parent = true
     allow {
       # Format: is:C00n20csy
       # This value will be merged with any values from the parent organization policy
