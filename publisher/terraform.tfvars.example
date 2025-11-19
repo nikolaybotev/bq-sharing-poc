@@ -9,11 +9,12 @@ allowed_ip_cidr_blocks = [
 ]
 
 # Region Configuration
-region   = "us-central1"
-location = "us-central1" # BigQuery location (us, eu, etc.)
+region = "us-central1"
 
 # Publisher Configuration
 publisher_primary_contact = "data-team@example.com"
 
 # Subscriber Configuration
-subscriber_customer_id = "C00n20csy" # Customer ID of subscriber
+subscriber_customer_id    = "C00n20csy" # Customer ID of subscriber
+subscriber_project_number = "123456789012"
+subscriber_principal      = "user:email@example.com" # IAM principal of subscriber (e.g., 'user:email@example.com')

@@ -1,29 +1,3 @@
-# VPC Service Controls Service Perimeter for bq-publisher
-resource "google_access_context_manager_service_perimeter" "publisher_perimeter" {
-  parent = "accessPolicies/${google_access_context_manager_access_policy.policy.name}"
-  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/servicePerimeters/bq_publisher_perimeter"
-  title  = "bq-publisher-perimeter"
-
-  status {
-    resources = [
-      "projects/${google_project.bq_publisher.number}"
-    ]
-
-    restricted_services = [
-      "bigquery.googleapis.com",
-      "analyticshub.googleapis.com"
-    ]
-
-    access_levels = [
-      google_access_context_manager_access_level.allowed_ips.name
-    ]
-  }
-
-  lifecycle {
-    ignore_changes = [status[0].resources]
-  }
-}
-
 # VPC Service Controls Service Perimeter for bq-exchange
 resource "google_access_context_manager_service_perimeter" "exchange_perimeter" {
   parent = "accessPolicies/${google_access_context_manager_access_policy.policy.name}"
@@ -45,11 +19,11 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
     ]
 
     ingress_policies {
-      title = "External Party Subscribes to Listing and Creates Linked Dataset"
+      title = "Data Customer Subscribes to Listing and Creates Linked Dataset"
 
       ingress_from {
         identities = [
-          "user:home@nikolaybotev.org"
+          var.subscriber_principal
         ]
         sources {
           access_level = "*"
@@ -78,7 +52,7 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
     }
 
     egress_policies {
-      title = "Create Linked Dataset in Subscriber Project"
+      title = "Analytics Hub Creates Linked Dataset in Data Customer Subscription Project"
 
       egress_from {
         identity_type = "ANY_IDENTITY"
@@ -86,7 +60,7 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
 
       egress_to {
         resources = [
-          "projects/618045648662", # external organization
+          "projects/${var.subscriber_project_number}",
         ]
 
         operations {
@@ -97,9 +71,5 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
         }
       }
     }
-  }
-
-  lifecycle {
-    ignore_changes = [status[0].resources]
   }
 }

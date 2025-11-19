@@ -1,4 +1,5 @@
-# Infrastructure Variables
+# Infrastructure Configuration
+
 variable "organization_id" {
   description = "GCP Organization ID where projects will be created"
   type        = string
@@ -31,12 +32,6 @@ variable "region" {
   default     = "us-central1"
 }
 
-variable "location" {
-  description = "BigQuery location (e.g., 'us', 'eu')"
-  type        = string
-  default     = "us-central1"
-}
-
 # Publisher Configuration
 
 variable "publisher_primary_contact" {
@@ -48,5 +43,15 @@ variable "publisher_primary_contact" {
 
 variable "subscriber_customer_id" {
   description = "Subscriber customer ID to be allowed for IAM policy members (e.g., 'C00n20csy')"
+  type        = string
+}
+
+variable "subscriber_project_number" {
+  description = "Project number of the subscriber project (e.g., '618045648662')"
+  type        = string
+}
+
+variable "subscriber_principal" {
+  description = "IAM principal of the subscriber (e.g., 'user:johndoe@nsubscriber.com')"
   type        = string
 }
