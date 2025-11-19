@@ -77,8 +77,41 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
       google_access_context_manager_access_level.allowed_ips.name
     ]
 
+    ingress_policies {
+      title = "External Party Subscribes to Listing and Creates Linked Dataset"
+
+      ingress_from {
+        identities = [
+          "user:home@nikolaybotev.org"
+        ]
+        sources {
+          access_level = "*"
+        }
+      }
+
+      ingress_to {
+        resources = [
+          "projects/${google_project.bq_exchange.number}",
+        ]
+
+        operations {
+          service_name = "analyticshub.googleapis.com"
+          method_selectors {
+            method = "*"
+          }
+        }
+
+        operations {
+          service_name = "bigquery.googleapis.com"
+          method_selectors {
+            method = "*"
+          }
+        }
+      }
+    }
+
     egress_policies {
-      title     = "Subscriber Create Dataset"
+      title = "Create Linked Dataset in Subscriber Project"
 
       egress_from {
         identity_type = "ANY_IDENTITY"
@@ -87,6 +120,7 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
       egress_to {
         resources = [
           "projects/${google_project.bq_subscriber.number}",
+          "projects/618045648662", # external organization
         ]
 
         operations {

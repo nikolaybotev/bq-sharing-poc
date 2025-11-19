@@ -1,6 +1,6 @@
 # Organization and Project Configuration
-organization_id   = "123456789012"  # Your GCP Organization ID
-project_prefix    = "my-prefix"      # Prefix for all project IDs
+organization_id    = "123456789012"  # Your GCP Organization ID
+project_prefix     = "my-prefix"      # Prefix for all project IDs
 billing_account_id = "01ABCD-23EFGH-456IJK"  # Your billing account ID
 quota_project_id   = "my-existing-project"  # Existing project ID for quota/billing (must have billing enabled)
 
@@ -9,21 +9,29 @@ allowed_ip_cidr_blocks = [
 ]
 
 # Region Configuration
-region  = "us-central1"
-location = "us"  # BigQuery location (us, eu, etc.)
+region   = "us-central1"
+location = "us-central1" # BigQuery location (us, eu, etc.)
 
 # BigQuery Resources
-dataset_id = "shared_dataset"
-exchange_id = "data_exchange"
+dataset_id            = "shared_dataset"
+exchange_id           = "data_exchange"
 exchange_display_name = "Data Exchange"
-exchange_description = "BigQuery data sharing exchange"
+exchange_description  = "BigQuery data sharing exchange"
 
-listing_id = "data_listing"  # Must contain only letters, numbers, and underscores
+listing_id           = "data_listing" # Must contain only letters, numbers, and underscores
 listing_display_name = "Shared Dataset Listing"
-listing_description = "Shared BigQuery dataset"
+listing_description  = "Shared BigQuery dataset"
 
-subscription_id = "data_subscription"  # Must contain only letters, numbers, and underscores (used as dataset ID)
+subscription_id = "data_subscription" # Must contain only letters, numbers, and underscores (used as dataset ID)
 
 # Contact Information
 primary_contact    = "data-team@example.com"
 data_provider_name = "Data Provider"
+
+# Organization Policy Configuration
+# Customer IDs of organizations allowed for IAM policy members
+# Format: ['C00m10csx', 'C03di8z8f']
+allowed_organization_customer_ids = [
+  "C00m10csx", # Your organization
+  "C03di8z8f"  # External organization (e.g., for home@nikolaybotev.org)
+]

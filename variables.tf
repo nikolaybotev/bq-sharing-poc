@@ -94,3 +94,9 @@ variable "data_provider_name" {
   type        = string
   default     = "Data Provider"
 }
+
+variable "allowed_organization_customer_ids" {
+  description = "List of organization customer IDs allowed for IAM policy members (e.g., ['C00m10csx', 'C03di8z8f'])"
+  type        = list(string)
+  default     = []
+}
