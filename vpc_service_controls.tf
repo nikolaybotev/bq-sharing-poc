@@ -7,7 +7,7 @@ resource "google_access_context_manager_access_policy" "policy" {
 # VPC Service Controls Access Level
 resource "google_access_context_manager_access_level" "allowed_ips" {
   parent = "accessPolicies/${google_access_context_manager_access_policy.policy.name}"
-  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/accessLevels/allowed-ips"
+  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/accessLevels/allowed_ips"
   title  = "allowed-ips"
 
   dynamic "basic" {
@@ -34,7 +34,7 @@ resource "google_access_context_manager_access_level" "allowed_ips" {
 # VPC Service Controls Service Perimeter for bq-publisher
 resource "google_access_context_manager_service_perimeter" "publisher_perimeter" {
   parent = "accessPolicies/${google_access_context_manager_access_policy.policy.name}"
-  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/servicePerimeters/bq-publisher-perimeter"
+  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/servicePerimeters/bq_publisher_perimeter"
   title  = "bq-publisher-perimeter"
 
   status {
@@ -44,7 +44,6 @@ resource "google_access_context_manager_service_perimeter" "publisher_perimeter"
 
     restricted_services = [
       "bigquery.googleapis.com",
-      "bigquerystorage.googleapis.com",
       "analyticshub.googleapis.com"
     ]
 
@@ -61,7 +60,7 @@ resource "google_access_context_manager_service_perimeter" "publisher_perimeter"
 # VPC Service Controls Service Perimeter for bq-exchange
 resource "google_access_context_manager_service_perimeter" "exchange_perimeter" {
   parent = "accessPolicies/${google_access_context_manager_access_policy.policy.name}"
-  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/servicePerimeters/bq-exchange-perimeter"
+  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/servicePerimeters/bq_exchange_perimeter"
   title  = "bq-exchange-perimeter"
 
   status {
@@ -71,7 +70,6 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
 
     restricted_services = [
       "bigquery.googleapis.com",
-      "bigquerystorage.googleapis.com",
       "analyticshub.googleapis.com"
     ]
 
@@ -88,7 +86,7 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
 # VPC Service Controls Service Perimeter for bq-subscriber (referencing access level)
 resource "google_access_context_manager_service_perimeter" "subscriber_perimeter" {
   parent = "accessPolicies/${google_access_context_manager_access_policy.policy.name}"
-  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/servicePerimeters/bq-subscriber-perimeter"
+  name   = "accessPolicies/${google_access_context_manager_access_policy.policy.name}/servicePerimeters/bq_subscriber_perimeter"
   title  = "bq-subscriber-perimeter"
 
   status {

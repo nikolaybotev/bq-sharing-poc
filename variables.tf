@@ -19,6 +19,11 @@ variable "billing_account_id" {
   type        = string
 }
 
+variable "quota_project_id" {
+  description = "Project ID to use for quota/billing when using Application Default Credentials. Must be an existing project with billing enabled."
+  type        = string
+}
+
 variable "region" {
   description = "GCP region for resources"
   type        = string
@@ -40,7 +45,7 @@ variable "dataset_id" {
 variable "exchange_id" {
   description = "BigQuery Sharing data exchange ID"
   type        = string
-  default     = "data-exchange"
+  default     = "data_exchange"
 }
 
 variable "exchange_display_name" {
@@ -56,9 +61,9 @@ variable "exchange_description" {
 }
 
 variable "listing_id" {
-  description = "BigQuery Sharing listing ID"
+  description = "BigQuery Sharing listing ID (must contain only letters, numbers, and underscores)"
   type        = string
-  default     = "data-listing"
+  default     = "data_listing"
 }
 
 variable "listing_display_name" {
@@ -74,9 +79,9 @@ variable "listing_description" {
 }
 
 variable "subscription_id" {
-  description = "BigQuery Sharing subscription ID"
+  description = "BigQuery Sharing subscription ID (used as dataset ID, must contain only letters, numbers, and underscores)"
   type        = string
-  default     = "data-subscription"
+  default     = "data_subscription"
 }
 
 variable "primary_contact" {
