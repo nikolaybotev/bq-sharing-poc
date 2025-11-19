@@ -10,4 +10,3 @@ resource "google_bigquery_dataset" "shared_dataset" {
     google_project_service.bigquery_publisher
   ]
 }
-

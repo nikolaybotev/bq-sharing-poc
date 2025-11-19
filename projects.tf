@@ -95,4 +95,3 @@ resource "google_project_service" "serviceusage_exchange" {
 
   disable_dependent_services = false
 }
-

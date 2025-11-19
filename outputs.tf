@@ -87,4 +87,3 @@ output "access_policy_name" {
   description = "Access policy name"
   value       = google_access_context_manager_access_policy.policy.name
 }
-

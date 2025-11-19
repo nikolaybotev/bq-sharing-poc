@@ -61,4 +61,3 @@ resource "google_bigquery_analytics_hub_listing_subscription" "data_subscription
     google_project_service.analyticshub_subscriber
   ]
 }
-

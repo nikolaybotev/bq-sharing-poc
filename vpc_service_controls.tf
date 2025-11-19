@@ -124,4 +124,3 @@ resource "google_access_context_manager_service_perimeter" "subscriber_perimeter
     ignore_changes = [status[0].resources]
   }
 }
-
