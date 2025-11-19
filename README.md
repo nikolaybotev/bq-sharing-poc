@@ -2,6 +2,14 @@
 
 This repository contains Terraform configurations for a proof-of-concept demonstrating secure BigQuery data sharing between two different GCP organizations using Analytics Hub, VPC Service Controls, and Organization Policies.
 
+## Objectives
+
+- **Demonstrate end-to-end functionality**: Provide a fully functional, production-ready implementation of secure BigQuery cross-organization data sharing using Analytics Hub, implemented as Terraform infrastructure-as-code
+- **Document subscriber requirements**: Identify and document the **minimum set of information** required from a subscriber organization (Customer ID, Project Number, and Principal) to enable secure dataset sharing
+- **Establish least-privilege VPC Service Controls**: Define the **minimum required** VPC Service Control perimeter ingress and egress rules for successful cross-organization sharing while maintaining **maximum data exfiltration protection** and enforcing least-privilege network access
+- **Establish least-privilege IAM Organization Policy**: Define the Organization Policy configuration (`iam.allowedPolicyMemberDomains`) that protects against data exfiltration by restricting IAM grants to external principals, enforcing least-privilege access at the organizational level
+- **Compare architectural variants**: Validate and document both the two-project (publisher/exchange separation) and single-project architectural approaches to help teams choose the appropriate pattern for their use case
+
 ## Overview
 
 This PoC consists of two separate Terraform projects that work together to establish a secure data sharing connection:
@@ -18,6 +26,9 @@ The architecture uses **VPC Service Controls** and **Organization Policies** to 
 - **Exchange Project**: Hosts the Analytics Hub data exchange and listing
 - **VPC Service Controls**: Service perimeters protecting BigQuery and Analytics Hub APIs
 - **Organization Policies**: Allow IAM policy members from external subscriber organizations
+
+Note: there is also a single-project variant of the publisher where the Data Exchange is in the same
+project as the BigQuery dataset. See the section at the end of the document for details.
 
 ### Subscriber Side
 - **Subscriber Project**: Contains the subscription and linked dataset
