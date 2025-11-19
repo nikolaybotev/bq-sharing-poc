@@ -158,3 +158,41 @@ terraform destroy
 - [BigQuery Analytics Hub Documentation](https://cloud.google.com/bigquery/docs/analytics-hub-introduction)
 - [VPC Service Controls Documentation](https://cloud.google.com/vpc-service-controls/docs)
 - [Organization Policies Documentation](https://cloud.google.com/resource-manager/docs/organization-policy/overview)
+
+## Single-Project Publisher Variant
+
+The `publisher-single-project/` directory contains an alternative publisher configuration that consolidates the publisher and exchange projects into a single project. This variant simplifies the architecture by:
+
+- **Merging Projects**: The BigQuery dataset and Analytics Hub data exchange/listings are both created in the same `bq-publisher` project
+- **Unified Service Perimeter**: A single VPC Service Controls service perimeter protects both BigQuery and Analytics Hub APIs with combined ingress/egress policies
+- **Simplified Management**: Fewer projects to manage while maintaining the same security controls
+
+### Usage
+
+To use the single-project publisher variant, follow the same Quick Start steps but use the `publisher-single-project/` directory instead of `publisher/`:
+
+```bash
+cd publisher-single-project
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your publisher organization details
+terraform init
+terraform plan
+terraform apply
+```
+
+After deployment, note the outputs:
+- `bq_publisher_project_id` (use this as the `exchange_project_id` in subscriber configuration)
+- `data_exchange_id`
+- `listing_id`
+
+**Note**: If you're importing existing resources (e.g., Access Policy or Access Level that were created by the two-project publisher), you may need to import them first:
+
+```bash
+# Import existing Access Policy (if it already exists)
+terraform import google_access_context_manager_access_policy.policy <policy_id>
+
+# Import existing Access Level (if it already exists)
+terraform import google_access_context_manager_access_level.allowed_ips accessPolicies/<policy_id>/accessLevels/allowed_ips
+```
+
+The subscriber configuration remains the same, but use `bq_publisher_project_id` as the `exchange_project_id` value.
