@@ -14,14 +14,6 @@ resource "google_project" "bq_exchange" {
   billing_account = var.billing_account_id
 }
 
-# Project: bq-subscriber
-resource "google_project" "bq_subscriber" {
-  name            = "${var.project_prefix}-bq-subscriber"
-  project_id      = "${var.project_prefix}-bq-subscriber"
-  org_id          = var.organization_id
-  billing_account = var.billing_account_id
-}
-
 # Enable BigQuery API in all projects
 resource "google_project_service" "bigquery_publisher" {
   project = google_project.bq_publisher.project_id
@@ -37,13 +29,6 @@ resource "google_project_service" "bigquery_exchange" {
   disable_dependent_services = false
 }
 
-resource "google_project_service" "bigquery_subscriber" {
-  project = google_project.bq_subscriber.project_id
-  service = "bigquery.googleapis.com"
-
-  disable_dependent_services = false
-}
-
 # Enable Analytics Hub API in all projects
 resource "google_project_service" "analyticshub_publisher" {
   project = google_project.bq_publisher.project_id
@@ -54,13 +39,6 @@ resource "google_project_service" "analyticshub_publisher" {
 
 resource "google_project_service" "analyticshub_exchange" {
   project = google_project.bq_exchange.project_id
-  service = "analyticshub.googleapis.com"
-
-  disable_dependent_services = false
-}
-
-resource "google_project_service" "analyticshub_subscriber" {
-  project = google_project.bq_subscriber.project_id
   service = "analyticshub.googleapis.com"
 
   disable_dependent_services = false

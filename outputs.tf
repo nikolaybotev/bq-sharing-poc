@@ -8,11 +8,6 @@ output "bq_exchange_project_id" {
   value       = google_project.bq_exchange.project_id
 }
 
-output "bq_subscriber_project_id" {
-  description = "Project ID for bq-subscriber"
-  value       = google_project.bq_subscriber.project_id
-}
-
 output "bq_publisher_project_number" {
   description = "Project number for bq-publisher"
   value       = google_project.bq_publisher.number
@@ -21,11 +16,6 @@ output "bq_publisher_project_number" {
 output "bq_exchange_project_number" {
   description = "Project number for bq-exchange"
   value       = google_project.bq_exchange.number
-}
-
-output "bq_subscriber_project_number" {
-  description = "Project number for bq-subscriber"
-  value       = google_project.bq_subscriber.number
 }
 
 output "bigquery_dataset_id" {
@@ -56,16 +46,6 @@ output "listing_id" {
 output "listing_name" {
   description = "Full resource name of the listing"
   value       = google_bigquery_analytics_hub_listing.data_listing.name
-}
-
-output "subscription_id" {
-  description = "BigQuery Sharing subscription ID"
-  value       = google_bigquery_analytics_hub_listing_subscription.data_subscription.subscription_id
-}
-
-output "subscription_name" {
-  description = "Full resource name of the subscription"
-  value       = google_bigquery_analytics_hub_listing_subscription.data_subscription.name
 }
 
 output "access_level_name" {
