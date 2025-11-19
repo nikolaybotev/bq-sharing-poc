@@ -1,3 +1,4 @@
+# Infrastructure Variables
 variable "organization_id" {
   description = "GCP Organization ID where projects will be created"
   type        = string
@@ -36,67 +37,16 @@ variable "location" {
   default     = "us-central1"
 }
 
-variable "dataset_id" {
-  description = "BigQuery dataset ID in bq-publisher project"
-  type        = string
-  default     = "shared_dataset"
-}
+# Publisher Configuration
 
-variable "exchange_id" {
-  description = "BigQuery Sharing data exchange ID"
-  type        = string
-  default     = "data_exchange"
-}
-
-variable "exchange_display_name" {
-  description = "Display name for the data exchange"
-  type        = string
-  default     = "Data Exchange"
-}
-
-variable "exchange_description" {
-  description = "Description for the data exchange"
-  type        = string
-  default     = "BigQuery data sharing exchange"
-}
-
-variable "listing_id" {
-  description = "BigQuery Sharing listing ID (must contain only letters, numbers, and underscores)"
-  type        = string
-  default     = "data_listing"
-}
-
-variable "listing_display_name" {
-  description = "Display name for the listing"
-  type        = string
-  default     = "Shared Dataset Listing"
-}
-
-variable "listing_description" {
-  description = "Description for the listing"
-  type        = string
-  default     = "Shared BigQuery dataset"
-}
-
-variable "subscription_id" {
-  description = "BigQuery Sharing subscription ID (used as dataset ID, must contain only letters, numbers, and underscores)"
-  type        = string
-  default     = "data_subscription"
-}
-
-variable "primary_contact" {
+variable "publisher_primary_contact" {
   description = "Primary contact email for data exchange and listing"
   type        = string
 }
 
-variable "data_provider_name" {
-  description = "Name of the data provider"
-  type        = string
-  default     = "Data Provider"
-}
+# Subscriber Configuration
 
-variable "allowed_organization_customer_ids" {
-  description = "List of organization customer IDs allowed for IAM policy members (e.g., ['C00m10csx', 'C03di8z8f'])"
-  type        = list(string)
-  default     = []
+variable "subscriber_customer_id" {
+  description = "Subscriber customer ID to be allowed for IAM policy members (e.g., 'C00n20csy')"
+  type        = string
 }

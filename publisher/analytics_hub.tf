@@ -2,9 +2,9 @@
 resource "google_bigquery_analytics_hub_data_exchange" "data_exchange" {
   project          = google_project.bq_exchange.project_id
   location         = var.location
-  data_exchange_id = var.exchange_id
-  display_name     = var.exchange_display_name
-  description      = var.exchange_description
+  data_exchange_id = "data_exchange"
+  display_name     = "Data Exchange"
+  description      = "BigQuery data sharing exchange"
 
   depends_on = [
     google_project_service.analyticshub_exchange
@@ -16,21 +16,21 @@ resource "google_bigquery_analytics_hub_listing" "data_listing" {
   project          = google_project.bq_exchange.project_id
   location         = var.location
   data_exchange_id = google_bigquery_analytics_hub_data_exchange.data_exchange.data_exchange_id
-  listing_id       = var.listing_id
-  display_name     = var.listing_display_name
-  description      = var.listing_description
+  listing_id       = "data_listing"
+  display_name     = "Shared Dataset Listing"
+  description      = "Shared BigQuery dataset"
 
   bigquery_dataset {
     dataset = google_bigquery_dataset.shared_dataset.id
   }
 
   publisher {
-    name = var.data_provider_name
+    name = "Data Provider"
   }
 
   data_provider {
-    name            = var.data_provider_name
-    primary_contact = var.primary_contact
+    name            = "Data Provider"
+    primary_contact = var.publisher_primary_contact
   }
 
   depends_on = [

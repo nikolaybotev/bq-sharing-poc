@@ -55,7 +55,7 @@ The configuration creates:
    - `project_prefix`: Prefix for project IDs (e.g., "mycompany")
    - `billing_account_id`: Your billing account ID
    - `allowed_ip_cidr_blocks`: List of allowed IP CIDR blocks
-   - `primary_contact`: Contact email for data exchange
+   - `publisher_primary_contact`: Contact email for data exchange
 
 3. **Initialize Terraform**:
    ```bash
@@ -79,7 +79,7 @@ The configuration creates:
 - `organization_id`: GCP Organization ID
 - `project_prefix`: Prefix for all project IDs
 - `billing_account_id`: Billing account ID
-- `primary_contact`: Primary contact email
+- `publisher_primary_contact`: Primary contact email
 
 ### Optional Variables
 

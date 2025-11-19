@@ -1,4 +1,4 @@
-# Organization Policy: Allow specific organization customer IDs for IAM policy members
+# Organization Policy: Allow specific subscriber customer ID for IAM policy members
 # This is required when granting IAM roles to users from external organizations
 # Policy enforcement: Merge with parent (default behavior - project policy merges with organization policy)
 # See https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains#retrieving_customer_id
@@ -8,9 +8,9 @@ resource "google_project_organization_policy" "allowed_policy_member_domains" {
 
   list_policy {
     allow {
-      # Format: is:C00m10csx, is:C03di8z8f
-      # These values will be merged with any values from the parent organization policy
-      values = [for id in var.allowed_organization_customer_ids : "is:${id}"]
+      # Format: is:C00n20csy
+      # This value will be merged with any values from the parent organization policy
+      values = ["is:${var.subscriber_customer_id}"]
     }
   }
 
