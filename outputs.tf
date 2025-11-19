@@ -60,12 +60,12 @@ output "listing_name" {
 
 output "subscription_id" {
   description = "BigQuery Sharing subscription ID"
-  value       = google_bigquery_analytics_hub_subscription.data_subscription.subscription_id
+  value       = google_bigquery_analytics_hub_listing_subscription.data_subscription.subscription_id
 }
 
 output "subscription_name" {
   description = "Full resource name of the subscription"
-  value       = google_bigquery_analytics_hub_subscription.data_subscription.name
+  value       = google_bigquery_analytics_hub_listing_subscription.data_subscription.name
 }
 
 output "access_level_name" {

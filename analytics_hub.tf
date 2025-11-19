@@ -68,12 +68,19 @@ resource "google_project_iam_member" "subscriber_analyticshub_subscriber" {
 }
 
 # BigQuery Sharing Subscription in bq-subscriber project
-resource "google_bigquery_analytics_hub_subscription" "data_subscription" {
-  project             = google_project.bq_subscriber.project_id
-  location            = var.location
-  subscription_id     = var.subscription_id
-  listing             = google_bigquery_analytics_hub_listing.data_listing.name
-  destination_project = google_project.bq_subscriber.project_id
+resource "google_bigquery_analytics_hub_listing_subscription" "data_subscription" {
+  project         = google_project.bq_subscriber.project_id
+  location        = var.location
+  data_exchange_id = google_bigquery_analytics_hub_data_exchange.data_exchange.data_exchange_id
+  listing_id      = google_bigquery_analytics_hub_listing.data_listing.listing_id
+
+  destination_dataset {
+    location = var.location
+    dataset_reference {
+      dataset_id = var.subscription_id
+      project_id = google_project.bq_subscriber.project_id
+    }
+  }
 
   depends_on = [
     google_bigquery_analytics_hub_listing.data_listing,
