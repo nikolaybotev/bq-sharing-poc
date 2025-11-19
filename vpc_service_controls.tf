@@ -76,6 +76,27 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
     access_levels = [
       google_access_context_manager_access_level.allowed_ips.name
     ]
+
+    egress_policies {
+      title     = "Subscriber Create Dataset"
+
+      egress_from {
+        identity_type = "ANY_IDENTITY"
+      }
+
+      egress_to {
+        resources = [
+          "projects/${google_project.bq_subscriber.number}",
+        ]
+
+        operations {
+          service_name = "bigquery.googleapis.com"
+          method_selectors {
+            method = "*"
+          }
+        }
+      }
+    }
   }
 
   lifecycle {
