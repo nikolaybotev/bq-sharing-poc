@@ -1,6 +1,6 @@
 # Project: bq-publisher
 resource "google_project" "bq_publisher" {
-  name            = "bq-publisher"
+  name            = "${var.project_prefix}-bq-publisher"
   project_id      = "${var.project_prefix}-bq-publisher"
   org_id          = var.organization_id
   billing_account = var.billing_account_id
@@ -8,7 +8,7 @@ resource "google_project" "bq_publisher" {
 
 # Project: bq-exchange
 resource "google_project" "bq_exchange" {
-  name            = "bq-exchange"
+  name            = "${var.project_prefix}-bq-exchange"
   project_id      = "${var.project_prefix}-bq-exchange"
   org_id          = var.organization_id
   billing_account = var.billing_account_id
@@ -16,7 +16,7 @@ resource "google_project" "bq_exchange" {
 
 # Project: bq-subscriber
 resource "google_project" "bq_subscriber" {
-  name            = "bq-subscriber"
+  name            = "${var.project_prefix}-bq-subscriber"
   project_id      = "${var.project_prefix}-bq-subscriber"
   org_id          = var.organization_id
   billing_account = var.billing_account_id
