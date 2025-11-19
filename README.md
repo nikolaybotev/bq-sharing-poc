@@ -1,178 +1,160 @@
-# Terraform Configuration for BigQuery Sharing with VPC Service Controls
+# BigQuery Cross-Organization Data Sharing PoC
 
-This Terraform configuration sets up a complete BigQuery data sharing infrastructure with VPC Service Controls protection.
+This repository contains Terraform configurations for a proof-of-concept demonstrating secure BigQuery data sharing between two different GCP organizations using Analytics Hub, VPC Service Controls, and Organization Policies.
+
+## Overview
+
+This PoC consists of two separate Terraform projects that work together to establish a secure data sharing connection:
+
+1. **Publisher** (`publisher/`): The data provider organization that creates and shares a BigQuery dataset
+2. **Subscriber** (`subscriber/`): The data consumer organization that subscribes to the shared dataset
+
+The architecture uses **VPC Service Controls** and **Organization Policies** to enforce security boundaries and control access across organizational boundaries, simulating a real-world cross-organization sharing scenario.
 
 ## Architecture
 
-The configuration creates:
+### Publisher Side
+- **Publisher Project**: Contains the source BigQuery dataset to be shared
+- **Exchange Project**: Hosts the Analytics Hub data exchange and listing
+- **VPC Service Controls**: Service perimeters protecting BigQuery and Analytics Hub APIs
+- **Organization Policies**: Allow IAM policy members from external subscriber organizations
 
-1. **Three GCP Projects**:
-   - `bq-publisher`: Contains the source BigQuery dataset
-   - `bq-exchange`: Hosts the BigQuery Sharing data exchange and listing
-   - `bq-subscriber`: Subscribes to the shared dataset
+### Subscriber Side
+- **Subscriber Project**: Contains the subscription and linked dataset
+- **Subscription**: Connects to the publisher's listing to access shared data
 
-2. **VPC Service Controls**:
-   - Access level with IP CIDR restrictions
-   - Service perimeters protecting bq-publisher and bq-exchange projects
-   - Ingress and egress policies allowing secure data sharing
+## Security Controls
 
-3. **BigQuery Sharing Resources**:
-   - Dataset in bq-publisher project
-   - Data exchange in bq-exchange project
-   - Listing referencing the publisher dataset
-   - Subscription in bq-subscriber project
-   - IAM policies for access control
+### VPC Service Controls
+VPC Service Controls are used to restrict and control access to Google Cloud services:
 
-## Prerequisites
+- **Service Perimeters**: Protect BigQuery and Analytics Hub APIs in both publisher and exchange projects
+- **Access Levels**: Define IP-based access restrictions (optional)
+- **Ingress Policies**: Control who can access resources from outside the perimeter (e.g., subscriber accessing exchange)
+- **Egress Policies**: Control what resources can be accessed from within the perimeter (e.g., exchange creating linked datasets in subscriber project)
 
-1. **GCP Organization**: You must have an organization ID
-2. **Billing Account**: A billing account ID to associate with projects
-3. **Permissions**: The service account or user running Terraform needs:
-   - `roles/resourcemanager.projectCreator` at organization level
-   - `roles/billing.projectManager` at billing account level
-   - `roles/accesscontextmanager.policyAdmin` at organization level
-   - `roles/bigquery.admin` on projects
-   - `roles/analyticshub.admin` on projects
-   - `roles/serviceusage.serviceUsageAdmin` on projects
+### Organization Policies
+Organization Policies are used to allow cross-organization IAM bindings:
 
-4. **APIs**: The following APIs must be enabled (Terraform will enable them):
-   - BigQuery API
-   - Analytics Hub API
-   - Access Context Manager API
-   - Service Usage API
+- **`iam.allowedPolicyMemberDomains`**: Allows the publisher to grant IAM roles to users from the subscriber's organization by specifying the subscriber's customer ID
 
-## Setup
+## Data Sharing Process
 
-1. **Copy the example variables file**:
-   ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   ```
-   
-   **Note**: The `.gitignore` file is configured to exclude `terraform.tfvars` to prevent committing sensitive data.
+### Step 1: Subscriber Shares Information with Publisher
+The subscriber organization provides the following information to the publisher:
 
-2. **Edit `terraform.tfvars`** with your values:
-   - `organization_id`: Your GCP Organization ID
-   - `project_prefix`: Prefix for project IDs (e.g., "mycompany")
-   - `billing_account_id`: Your billing account ID
-   - `allowed_ip_cidr_blocks`: List of allowed IP CIDR blocks
-   - `publisher_primary_contact`: Contact email for data exchange
+- **Subscriber Customer ID**: The GCP customer ID of the subscriber organization (e.g., `C00n20csy`)
+- **Subscriber Project Number**: The project number where the subscription will be created (e.g., `618045648662`)
+- **Subscriber Principal**: The IAM principal (user or service account) that will subscribe to the listing (e.g., `user:johndoe@subscriber.com`)
 
-3. **Initialize Terraform**:
-   ```bash
-   terraform init
-   ```
+### Step 2: Publisher Creates and Shares Listing
+The publisher organization uses the subscriber information to:
 
-4. **Review the plan**:
-   ```bash
-   terraform plan
-   ```
+1. Create an Organization Policy allowing IAM bindings to the subscriber's customer ID
+2. Create a data exchange in the exchange project
+3. Create a listing that references the shared BigQuery dataset
+4. Grant the subscriber principal the `roles/analyticshub.subscriber` role on the listing
+5. Configure VPC Service Controls ingress/egress policies to allow the subscriber to access the exchange and for the exchange to create resources in the subscriber project
 
-5. **Apply the configuration**:
-   ```bash
-   terraform apply
-   ```
+### Step 3: Subscriber Creates Subscription
+The subscriber organization uses the publisher's information to:
 
-## Variables
+1. Create a subscription to the publisher's listing
+2. The subscription automatically creates a linked dataset in the subscriber project, providing access to the shared data
 
-### Required Variables
+## Quick Start
 
-- `organization_id`: GCP Organization ID
-- `project_prefix`: Prefix for all project IDs
-- `billing_account_id`: Billing account ID
-- `publisher_primary_contact`: Primary contact email
+### Prerequisites
 
-### Optional Variables
+- Two GCP organizations (or simulate with different projects/accounts)
+- Terraform >= 1.0
+- `gcloud` CLI installed and configured
+- Appropriate permissions in both organizations (see individual project READMEs for details)
 
-- `allowed_ip_cidr_blocks`: List of IP CIDR blocks (default: empty, allows all)
-- `region`: GCP region (default: "us-central1")
-- `location`: BigQuery location (default: "us")
-- `dataset_id`: Dataset ID (default: "shared_dataset")
-- `exchange_id`: Data exchange ID (default: "data-exchange")
-- `listing_id`: Listing ID (default: "data-listing")
-- `subscription_id`: Subscription ID (default: "data-subscription")
+### Step 1: Set Up Publisher Credentials
 
-See `variables.tf` for complete variable documentation.
+Create application default credentials for the publisher organization:
 
-## Outputs
+```bash
+gcloud auth application-default login && \
+cp ~/.config/gcloud/application_default_credentials.json ./publisher/credentials.json && \
+export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/publisher/credentials.json"
+```
 
-After applying, Terraform will output:
+### Step 2: Deploy Publisher Infrastructure
 
-- Project IDs and numbers for all three projects
-- BigQuery dataset information
-- Data exchange and listing details
-- Subscription information
-- VPC Service Controls resource names
+```bash
+cd publisher
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your publisher organization details
+terraform init
+terraform plan
+terraform apply
+```
 
-## VPC Service Controls Configuration
+After deployment, note the outputs:
+- `bq_exchange_project_id`
+- `data_exchange_id`
+- `listing_id`
 
-### Access Level
-- Created with IP CIDR restrictions from `allowed_ip_cidr_blocks`
-- Referenced by all three service perimeters
+### Step 3: Set Up Subscriber Credentials
 
-### Service Perimeters
-- **bq-publisher-perimeter**: Protects BigQuery and Analytics Hub APIs in publisher project
-- **bq-exchange-perimeter**: Protects BigQuery and Analytics Hub APIs in exchange project
-- **bq-subscriber-perimeter**: References the access level for subscriber project
+Switch to subscriber credentials (using a different GCP account/organization):
 
-### Ingress Policies
-- **Publisher**: Allows queries from bq-subscriber project
-- **Exchange**: Allows subscription operations from bq-subscriber project
+```bash
+gcloud auth application-default login && \
+cp ~/.config/gcloud/application_default_credentials.json ./subscriber/credentials.json && \
+export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/subscriber/credentials.json"
+```
 
-### Egress Policies
-- **Publisher**: Allows access to bq-subscriber for data sharing
-- **Exchange**: Allows access to both bq-subscriber and bq-publisher
+### Step 4: Deploy Subscriber Infrastructure
+
+```bash
+cd subscriber
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with:
+# - Your subscriber organization details
+# - The exchange_project_id, data_exchange_id, and listing_id from publisher outputs
+terraform init
+terraform plan
+terraform apply
+```
+
+### Step 5: Verify the Connection
+
+After both deployments complete, verify the subscription was created successfully:
+
+```bash
+# Using subscriber credentials
+gcloud bigquery analytics-hub subscriptions list \
+  --project=<subscriber-project-id> \
+  --location=us-central1
+```
 
 ## Important Notes
 
-1. **Project Creation**: Projects are created in the specified organization. Ensure you have proper permissions.
-
-2. **VPC Service Controls**: Service perimeters can take several minutes to propagate. Be patient during initial setup.
-
-3. **IAM Permissions**: The configuration grants the bq-subscriber project's service account permission to subscribe to listings. Additional IAM bindings may be needed for specific use cases.
-
-4. **Billing**: All projects are associated with the specified billing account. Monitor costs.
-
-5. **API Enablement**: APIs are enabled automatically, but this can take a few minutes.
-
-6. **Dependencies**: Resources are created with proper dependencies, but some operations (like VPC Service Controls propagation) may require waiting.
-
-## Troubleshooting
-
-### VPC Service Controls Issues
-
-If you encounter issues with VPC Service Controls:
-
-1. **Check API enablement**: Ensure Access Context Manager API is enabled
-2. **Verify permissions**: Ensure you have `roles/accesscontextmanager.policyAdmin`
-3. **Wait for propagation**: Service perimeters can take 5-10 minutes to fully propagate
-4. **Check access level**: Verify the access level allows your IP addresses
-
-### BigQuery Sharing Issues
-
-1. **API enablement**: Ensure Analytics Hub API is enabled in all projects
-2. **IAM permissions**: Verify the subscriber has proper IAM roles
-3. **Dataset location**: Ensure dataset location matches exchange location
-4. **Service account**: The subscriber project's Analytics Hub service account needs permissions
-
-### Common Errors
-
-- **"Permission denied"**: Check IAM roles and organization-level permissions
-- **"API not enabled"**: Wait a few minutes after project creation for APIs to enable
-- **"Service perimeter not ready"**: Wait for VPC Service Controls to propagate
+- **Cross-Organization Setup**: For a true cross-organization scenario, deploy publisher and subscriber in different GCP organizations using different GCP accounts/credentials
+- **Credential Management**: Use separate application default credentials files for publisher and subscriber to simulate different organizations
+- **VPC Service Controls Propagation**: Service perimeters can take 5-10 minutes to fully propagate after creation
+- **Organization Policies**: The publisher must configure the `iam.allowedPolicyMemberDomains` policy to allow IAM bindings to the subscriber's customer ID
+- **Billing**: Ensure both organizations have billing enabled for their respective projects
 
 ## Cleanup
 
 To destroy all resources:
 
 ```bash
+# Destroy subscriber first
+cd subscriber
+terraform destroy
+
+# Then destroy publisher
+cd ../publisher
 terraform destroy
 ```
 
-**Warning**: This will delete all created projects and resources. Ensure you have backups if needed.
-
 ## Additional Resources
 
-- [BigQuery Sharing Documentation](https://cloud.google.com/bigquery/docs/share-access-views)
+- [BigQuery Analytics Hub Documentation](https://cloud.google.com/bigquery/docs/analytics-hub-introduction)
 - [VPC Service Controls Documentation](https://cloud.google.com/vpc-service-controls/docs)
-- [Terraform Google Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
-
+- [Organization Policies Documentation](https://cloud.google.com/resource-manager/docs/organization-policy/overview)
