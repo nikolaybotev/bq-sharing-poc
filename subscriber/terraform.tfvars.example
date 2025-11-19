@@ -1,0 +1,13 @@
+# Organization and Project Configuration
+organization_id    = "123456789012"         # Your GCP Organization ID
+project_prefix     = "my-prefix"            # Prefix for project ID
+billing_account_id = "01ABCD-23EFGH-456IJK" # Your billing account ID
+quota_project_id   = "my-existing-project"  # Existing project ID for quota/billing (must have billing enabled)
+
+# Region Configuration
+region = "us-central1"
+
+# Publisher/Exchange Configuration (from publisher outputs)
+exchange_project_id = "my-prefix-bq-exchange"  # Exchange project ID from publisher outputs
+data_exchange_id    = "data_exchange"          # Data exchange ID from publisher outputs
+listing_id          = "data_listing"           # Listing ID from publisher outputs
