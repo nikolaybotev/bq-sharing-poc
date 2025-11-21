@@ -166,8 +166,8 @@ terraform destroy
 
 ## Additional Resources
 
-- [BigQuery Analytics Hub Documentation](https://cloud.google.com/bigquery/docs/analytics-hub-introduction)
-- [VPC Service Controls Documentation](https://cloud.google.com/vpc-service-controls/docs)
+- [BigQuery Sharing (Analytics Hub) Documentation](https://cloud.google.com/bigquery/docs/analytics-hub-introduction)
+- [VPC Service Controls for Analytics Hub](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules)
 - [Organization Policies Documentation](https://cloud.google.com/resource-manager/docs/organization-policy/overview)
 
 ## Single-Project Publisher Variant
