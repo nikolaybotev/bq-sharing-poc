@@ -71,5 +71,37 @@ resource "google_access_context_manager_service_perimeter" "exchange_perimeter" 
         }
       }
     }
+
+    # Required when the shared dataset and exchange are in different perimeters
+    # so Analytics Hub can create/manage a listing that references the dataset.
+    # See https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#create_a_listing
+    # (Figure 2: Project E egress to Project S).
+    egress_policies {
+      title = "Exchange Accesses Shared Dataset In Publisher Project For Listing Creation"
+
+      egress_from {
+        identity_type = "ANY_IDENTITY"
+      }
+
+      egress_to {
+        resources = [
+          "projects/${google_project.bq_publisher.number}",
+        ]
+
+        operations {
+          service_name = "analyticshub.googleapis.com"
+          method_selectors {
+            method = "*"
+          }
+        }
+
+        operations {
+          service_name = "bigquery.googleapis.com"
+          method_selectors {
+            method = "*"
+          }
+        }
+      }
+    }
   }
 }
