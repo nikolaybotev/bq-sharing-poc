@@ -34,13 +34,8 @@ resource "google_access_context_manager_service_perimeter" "publisher_perimeter"
           "projects/${google_project.bq_exchange.number}",
         ]
 
-        operations {
-          service_name = "analyticshub.googleapis.com"
-          method_selectors {
-            method = "*"
-          }
-        }
-
+        # Validated: bigquery alone is sufficient for listing create; analyticshub
+        # was not required on this egress path.
         operations {
           service_name = "bigquery.googleapis.com"
           method_selectors {
