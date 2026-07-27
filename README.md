@@ -40,9 +40,11 @@ project as the BigQuery dataset. See the section at the end of the document for 
 VPC Service Controls are used to restrict and control access to Google Cloud services:
 
 - **Service Perimeters**: Protect BigQuery and Analytics Hub APIs in both publisher and exchange projects
-- **Access Levels**: Define IP-based access restrictions (optional)
-- **Ingress Policies**: Control who can access resources from outside the perimeter (e.g., subscriber accessing exchange)
-- **Egress Policies**: Control what resources can be accessed from within the perimeter (e.g., exchange creating linked datasets in subscriber project)
+- **Access Levels**: Define IP-based access restrictions (optional); used here so trusted callers (e.g. Terraform from a allowlisted IP) can reach perimeter-protected APIs from outside
+- **Ingress Policies**: Control who can access resources from outside the perimeter (e.g., subscriber accessing the exchange)
+- **Egress Policies**: Control what resources can be accessed across perimeter boundaries (e.g., exchange ↔ publisher during listing create; exchange → subscriber during subscribe)
+
+**Important:** Creating a listing, subscribing, and querying shared tables are **separate VPC-SC moments** with different rule requirements. Do not assume rules that are unused after a listing already exists are “redundant.” See [Validated VPC Service Controls findings](#validated-vpc-service-controls-findings) below.
 
 ### Organization Policies
 Organization Policies are used to allow cross-organization IAM bindings:
@@ -65,7 +67,7 @@ The publisher organization uses the subscriber information to:
 2. Create a data exchange in the exchange project
 3. Create a listing that references the shared BigQuery dataset
 4. Grant the subscriber principal the `roles/analyticshub.subscriber` role on the listing
-5. Configure VPC Service Controls ingress/egress policies to allow the subscriber to access the exchange and for the exchange to create resources in the subscriber project
+5. Configure VPC Service Controls: perimeter access levels for trusted callers; **publisher ↔ exchange BigQuery egress** for listing create; exchange ingress for the subscriber principal and exchange → subscriber BigQuery egress for subscribe (see [Validated VPC Service Controls findings](#validated-vpc-service-controls-findings))
 
 ### Step 3: Subscriber Creates Subscription
 The subscriber organization uses the publisher's information to:
@@ -164,11 +166,60 @@ cd ../publisher
 terraform destroy
 ```
 
+## Validated VPC Service Controls findings
+
+These findings apply to the **two-project** publisher architecture (separate publisher and exchange projects, each in its own perimeter). They were validated live against Google Cloud (July 2026) using the PoC’s perimeters with an IP allowlist access level on both. Official rule tables: [Sharing VPC Service Controls rules](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules).
+
+### Operation vs required rules (summary)
+
+| Operation | Official guide | What this PoC needs (validated) |
+|-----------|----------------|----------------------------------|
+| **Create listing** (exchange references dataset in publisher) | [Figure 2](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#create_a_listing) | Cross-perimeter **BigQuery egress both ways** (publisher ↔ exchange). Perimeter `access_levels` cover the **caller**; they do **not** replace E↔S egress. |
+| **Subscribe** (create linked dataset in subscriber project) | [Figure 3](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#subscribe_to_a_listing) | Rules on the **exchange** (ingress for subscriber principal; BigQuery egress to subscriber project). **No** publisher → subscriber egress when the subscriber project is outside a perimeter. |
+| **Query tables** via linked dataset | [Figure 4](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#query_tables_in_a_linked_dataset) | **No** publisher-perimeter ingress/egress for table reads through the linked dataset. |
+
+Views have additional cases ([Figures 5–7](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#query_views_in_a_linked_dataset)); this PoC shares **tables**, so Figure 4 applies.
+
+### Create listing (Figure 2) — validated detail
+
+When the shared dataset (Project S) and the exchange/listing (Project E) are in **different** perimeters:
+
+1. **Perimeter access levels alone are not enough.** With the caller IP allowlisted on both perimeters but **no** E↔S egress, `CreateListing` failed with VPC-SC (`RESOURCES_NOT_IN_SAME_SERVICE_PERIMETER`). Denials were attributed to **`bigquery.googleapis.com`** egress across the two perimeters (Analytics Hub appeared only as an intermediate service).
+2. **BigQuery egress is required in both directions:**
+   - Exchange → publisher (`bigquery.googleapis.com`)
+   - Publisher → exchange (`bigquery.googleapis.com`)
+3. **Exchange → publisher only (no publisher → exchange) is not enough** — create still failed until publisher → exchange BigQuery egress was added.
+4. **`analyticshub.googleapis.com` is not required on those E↔S egress rules** for listing create — BigQuery-only both ways succeeded. (Both perimeters still *restrict* `analyticshub.googleapis.com`; that is separate from these egress `operations`.)
+
+Implemented in `publisher/vpc_service_controls_publisher.tf` and `publisher/vpc_service_controls_exchange.tf`.
+
+### Subscribe + query — validated detail
+
+With publisher egress **only** to the exchange (no publisher → subscriber), a same-org subscriber project **outside** any perimeter:
+
+1. **Subscribe succeeded** (`SubscribeListing` → `STATE_ACTIVE`, linked dataset created) using exchange ingress for the subscriber principal and exchange → subscriber BigQuery egress.
+2. **Querying a table in the linked dataset succeeded** (full row results) with no VPC-SC denial.
+
+So publisher does **not** need egress to the subscriber project for subscribe or for querying shared **tables**.
+
+### Reading Google’s intro wording
+
+The [Sharing limitations](https://docs.cloud.google.com/bigquery/docs/analytics-hub-introduction#limitations) note says that if shared datasets are inside a VPC-SC perimeter, you need appropriate ingress/egress rules “for both the exchange project … and all subscriber projects.” That phrasing is easy to misread as “publisher needs egress toward exchange and subscribers.” In context (and per Figures 3–4 plus these tests), it means you must configure rules **on** the exchange and (when perimeterized) subscriber projects—not that the publisher perimeter must egress to every subscriber.
+
+Prefer the per-operation tables in [Sharing VPC Service Controls rules](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules) over that one-sentence summary.
+
+### Practical notes from debugging
+
+- VPC-SC denials often surface on the client as Analytics Hub `CreateListing` / `SubscribeListing` errors while audit metadata attributes the restricted service as **BigQuery**.
+- The Console [VPC Service Controls violation analyzer](https://docs.cloud.google.com/vpc-service-controls/docs/troubleshoot-vpc-sc-denials) can show **both** perimeters involved in one request more clearly than project audit JSON alone. Re-evaluation uses **current** policy, so historical UIDs are less useful after you change egress rules.
+- Perimeter and access-level changes can take several minutes to propagate before create/subscribe retries are meaningful.
+
 ## Additional Resources
 
-- [BigQuery Sharing (Analytics Hub) Documentation](https://cloud.google.com/bigquery/docs/analytics-hub-introduction)
-- [VPC Service Controls for Analytics Hub](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules)
-- [Organization Policies Documentation](https://cloud.google.com/resource-manager/docs/organization-policy/overview)
+- [Introduction to BigQuery sharing](https://docs.cloud.google.com/bigquery/docs/analytics-hub-introduction) (see [VPC Service Controls limitations](https://docs.cloud.google.com/bigquery/docs/analytics-hub-introduction#limitations))
+- [Sharing VPC Service Controls rules](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules) — [Create a listing (Figure 2)](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#create_a_listing), [Subscribe (Figure 3)](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#subscribe_to_a_listing), [Query tables (Figure 4)](https://docs.cloud.google.com/bigquery/docs/analytics-hub-vpc-sc-rules#query_tables_in_a_linked_dataset)
+- [Diagnose VPC-SC denials (violation analyzer)](https://docs.cloud.google.com/vpc-service-controls/docs/troubleshoot-vpc-sc-denials)
+- [Organization Policies overview](https://cloud.google.com/resource-manager/docs/organization-policy/overview)
 
 ## Single-Project Publisher Variant
 
